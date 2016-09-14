@@ -1,5 +1,6 @@
 ### >>> Cortar modelos pela respectiva EOO <<<
 
+#### Script criado para uma trablho específico em que seriam utilizados preferencialmente ENM. Para aquelas espécies sem modelos seriam utilizados as EOO transformadas em raster.
 ````{r}
 library(raster)
 library(dismo)
@@ -8,7 +9,7 @@ library(rgdal)
 # Listando os shapefiles
 shps <- list.files("./eoo/_grid/pamp",pattern="\\.shp$",full.names=TRUE)
 
-# Carrega o shape do Bioma
+# Carrega o shapefile do Bioma
 bioma <- shapefile("./biomas/poligono/pamp.shp")
 
 # Listando os modelos das especies
@@ -28,17 +29,19 @@ for (shp in shps){
   
   if (existe==FALSE){
     
-    # Cria um TXT com a lista das especies que nao tem modelo
+    # Cria um TXT com a lista das especies que nao tem modelo (log do console)
     sink(file=paste0("./modelos_cortados/pamp/_sem_modelo_pamp.txt"),append=T)
     cat(paste( shps_nome),"\n")
     sink()
     
     # Carregar shapefile da EOO para transformar em raster
     eoo <- shapefile(shp)
+    
     # Cria a coluna pixel na tabela de atributos do shapfile e preenche com 1
     eoo$pixel <- 1
     
-    # Rasterizar: transforma o poligono da eoo em raster
+    # Rasterizar: transforma o poligono da eoo em raster. ATENCAO para poligonos muito pequenos pode ocorrer a geracao de 
+    raster vazios(apenas valores 0). Mais e usar uma abordagem do tipo "spatial join" antes de rasterizar.
     r_pol <- rasterize(eoo,r_bioma,field="pixel",fun='sum',background=NA,mask=F)
     
     # Merge com o raster do bioma, neste caso funciona como se fosse uma soma de raters com extensoes diferentes
@@ -50,7 +53,7 @@ for (shp in shps){
   
   if (existe==TRUE){
     
-    # Carrega o raster do modelo que ja esta na resolucao final, ou seja, resample ja foi feito
+    # Carrega o raster modelo 
     raster <- raster(paste0("./modelos/pamp/",shps_nome,".asc.tif"))
     
     # Carrega o shapefile da EOO da especie
@@ -70,3 +73,6 @@ for (shp in shps){
   }
 }
 ````
+===
+
+### >>>
